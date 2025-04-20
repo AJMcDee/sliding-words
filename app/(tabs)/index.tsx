@@ -1,74 +1,95 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import { StyleSheet, View, Dimensions, Text, Pressable } from 'react-native';
+import { useState } from 'react';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const GRID_SIZE = 4;
+const ITEM_SIZE = (SCREEN_WIDTH * 0.9) / GRID_SIZE;
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  // Word Setting
+  const correctGridWords = ["ZINC", "IRON", "RUST", "TIN", " "]
+  const correctGridLetters = correctGridWords.join('').split('');
+  const [currentGridLetters, setCurrentGridLetters] = useState<string[]>(correctGridLetters);
+  const [emptySpacePosition, setEmptySpacePosition] = useState<number>(currentGridLetters.indexOf(' '));
+
+  // Swiping Logic
+  const [swipableGridIndices] = useState<number[]>([11, 14]);
+  const leftEdgeIndices = [0, 4, 8, 12];
+  const rightEdgeIndices = [3, 7, 11, 15];
+  const topRowIndices = [0, 1, 2, 3];
+  const buttomRowIndices = [12, 13, 14, 15];
+  const swapLetters = (index1: number, index2: number) => {
+    const newGrid = [...currentGridLetters];
+    [newGrid[index1], newGrid[index2]] = [newGrid[index2], newGrid[index1]];
+    setCurrentGridLetters(newGrid);
+    setEmptySpacePosition(index1);
+  };
+  const handleTap = (index: number) => {
+    alert(`Tapped index: ${index}`);
+  }
+
+  return (<View style={styles.container}>
+    <View style={styles.grid}>
+      {currentGridLetters.map((currentLetter, index) => {
+        const itemIsCorrect = correctGridLetters[index] === currentLetter;
+        const isMovable = index !== emptySpacePosition && swipableGridIndices.includes(index);
+
+        return isMovable ?
+          <Pressable
+            key={index}
+            onPress={() => handleTap(index)}
+            style={({ pressed }) => [
+              pressed && styles.pressedGridItem,
+            ]}>
+            <View style={itemIsCorrect ? styles.correctGridItem : styles.incorrectGridItem}>
+              <Text style={styles.gridItemLetter}>{currentLetter}</Text>
+            </View>
+          </Pressable>
+          :
+          <View key={index} style={itemIsCorrect ? styles.correctGridItem : styles.incorrectGridItem}>
+            <Text style={styles.gridItemLetter}>{currentLetter}</Text>
+          </View>
+      })}
+    </View>
+  </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  pressedGridItem: {
+    opacity: 0.6,
+    transform: [{ scale: 0.97 }],
+  },
+  container: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  grid: {
+    width: '90%',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  incorrectGridItem: {
+    width: ITEM_SIZE,
+    height: ITEM_SIZE,
+    backgroundColor: '#ccc',
+    borderColor: 'red',
+    borderWidth: 2,
+  },
+  correctGridItem: {
+    width: ITEM_SIZE,
+    height: ITEM_SIZE,
+    backgroundColor: '#ccc',
+    borderColor: 'green',
+    borderWidth: 2,
+  },
+  gridItemLetter: {
+    fontSize: 30,
+    textAlign: 'center',
+    lineHeight: ITEM_SIZE,
+    fontWeight: 'bold',
   },
 });
