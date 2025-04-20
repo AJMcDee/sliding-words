@@ -11,9 +11,25 @@ export default function HomeScreen() {
   const correctGridWords = ["ZINC", "IRON", "RUST", "TIN", " "]
   const correctGridLetters = correctGridWords.join('').split('');
   const [currentGridLetters, setCurrentGridLetters] = useState<string[]>(correctGridLetters);
-  const [emptySpacePosition, setEmptySpacePosition] = useState<number>(currentGridLetters.indexOf(' '));
+
+  // Styling Setting
+
+  const determineGridItemStyle = (index: number) => {
+    const currentGridLetter = currentGridLetters[index];
+    const letterIsCorrect = correctGridLetters[index] === currentGridLetters[index];
+    const itemIsEmpty = currentGridLetter === ' ';
+
+    if (itemIsEmpty) {
+      return styles.emptyGridItem;
+    } else if (letterIsCorrect) {
+      return styles.correctGridItem;
+    } else {
+      return styles.incorrectGridItem;
+    }
+  }
 
   // Swiping Logic
+  const [emptySpacePosition, setEmptySpacePosition] = useState<number>(currentGridLetters.indexOf(' '));
   const [swipableGridIndices] = useState<number[]>([11, 14]);
   const leftEdgeIndices = [0, 4, 8, 12];
   const rightEdgeIndices = [3, 7, 11, 15];
@@ -25,6 +41,8 @@ export default function HomeScreen() {
     setCurrentGridLetters(newGrid);
     setEmptySpacePosition(index1);
   };
+
+
   const handleTap = (index: number) => {
     alert(`Tapped index: ${index}`);
   }
@@ -32,7 +50,6 @@ export default function HomeScreen() {
   return (<View style={styles.container}>
     <View style={styles.grid}>
       {currentGridLetters.map((currentLetter, index) => {
-        const itemIsCorrect = correctGridLetters[index] === currentLetter;
         const isMovable = index !== emptySpacePosition && swipableGridIndices.includes(index);
 
         return isMovable ?
@@ -42,12 +59,12 @@ export default function HomeScreen() {
             style={({ pressed }) => [
               pressed && styles.pressedGridItem,
             ]}>
-            <View style={itemIsCorrect ? styles.correctGridItem : styles.incorrectGridItem}>
+            <View style={determineGridItemStyle(index)}>
               <Text style={styles.gridItemLetter}>{currentLetter}</Text>
             </View>
           </Pressable>
           :
-          <View key={index} style={itemIsCorrect ? styles.correctGridItem : styles.incorrectGridItem}>
+          <View key={index} style={determineGridItemStyle(index)}>
             <Text style={styles.gridItemLetter}>{currentLetter}</Text>
           </View>
       })}
@@ -92,4 +109,9 @@ const styles = StyleSheet.create({
     lineHeight: ITEM_SIZE,
     fontWeight: 'bold',
   },
+  emptyGridItem: {
+    width: ITEM_SIZE,
+    height: ITEM_SIZE,
+    backgroundColor: '#000',
+  }
 });
